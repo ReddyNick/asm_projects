@@ -1,0 +1,157 @@
+Turbo Assembler	 Version 4.1	    02/20/19 17:53:49	    Page 1
+letter.asm
+
+
+
+      1				     ;	     write any le									    +
+      2				     tter on the screen
+      3				     ;	     work with video memory
+      4
+      5	0000			     .model tiny
+      6	0000			     .code
+      7
+      8
+      9	      =000A		     X		      =	10
+     10	      =0007		     Y		      =	7
+     11	      =B800		     videomem =	0b800h
+     12	      =004E		     color    =	4Eh
+     13	      =0018		     width    =	18h
+*Warning* letter.asm(12) Reserved word used as symbol: WIDTH
+     14				     org 100h
+     15
+     16	0100			     start:
+     17	0100  B8 B800				     mov	     ax, videomem
+     18	0103  8E C0				     mov	     es, ax				     ; es -> videomem
+     19
+     20	0105  BF 0474				     mov     di, (X + Y	* 80) *	2    ; coordinates
+     21
+     22				     ;_______LU_CORNER____________________________
+     23	0108  B8 4EC9				     mov	     ax, 4EC9h
+     24	010B  AB				     stosw
+     25
+     26				     ;______DRAW_UPPER_BORDER_____________________
+     27	010C  B9 0018				     mov	     cx, width
+     28	010F  B0 CD				     mov	     al, 0CDh
+     29	0111			     upper_border:
+     30	0111  AB				     stosw						     ;/	mov es:[di], ax	/ di+
+     31				     = di + 2
+     32	0112  E2 FD				     loop    upper_border
+     33				     ;______RU_CORNER_____________________________
+     34	0114  B0 BB				     mov	     al, 0bbh
+     35	0116  AB				     stosw
+     36
+     37				     ;______DRAW_BODY_____________________________
+     38	0117  BF 0514				     mov     di, (X + (Y+1) * 80) * 2	 ; next	line
+     39	011A  33 F6				     xor	     si, si					     ; si = 0
+     40	011C  BB 0003				     mov	     bx, 3					     ; while (si <  +
+     41				     bi)
+     42	011F			     loop_body:
+     43	011F  B0 BA				     mov	     al, 0Bah
+     44	0121  AB				     stosw
+     45
+     46						     ;______DRAW__LINE__________________________
+     47	0122  B9 0018				     mov	     cx, width
+     48	0125  B0 00				     mov	     al, 0h
+     49	0127			     loop_line:
+     50	0127  AB				     stosw
+     51	0128  E2 FD				     loop    loop_line
+     52						     ;____________________________________________
+     53
+     54	012A  B0 BA				     mov	     al, 0Bah
+     55	012C  AB				     stosw
+     56
+Turbo Assembler	 Version 4.1	    02/20/19 17:53:49	    Page 2
+letter.asm
+
+
+
+     57	012D  83 C7 6C				     add     di,     (80 - width - 2)*2
+     58	0130  46				     inc     si
+     59	0131  3B F3				     cmp     si, bx
+     60	0133  75 EA				     jne     loop_body
+     61				     ;________________________________________________
+     62
+     63				     ;_______LOWER__BODER________
+     64	0135  B0 C8				     mov	     al, 0c8h
+     65	0137  AB				     stosw
+     66				     ;______DRAW_UPPER_BORDER_____________________
+     67	0138  B9 0018				     mov	     cx, width
+     68	013B  B0 CD				     mov	     al, 0cdh
+     69	013D			     lower_border:
+     70	013D  AB				     stosw
+     71	013E  E2 FD				     loop    lower_border
+     72
+     73	0140  B0 BC				     mov	     al, 0bch
+     74	0142  AB				     stosw
+     75				     ;_________________________
+     76
+     77	0143  BF 05BE				     mov     di, (X + 5	+ (Y+2)	* 80) *	2    ;line for the message
+     78
+     79	0146  BE 0000r				     mov     si	,offset	msg
+     80
+     81	0149  AC				     lodsb
+     82	014A			     msg_loop:
+     83	014A  AB				     stosw
+     84	014B  AC				     lodsb
+     85	014C  3C 24				     cmp     al, 24h	     ; until '$'
+     86	014E  75 FA				     jne msg_loop
+     87				     ;______________________________________
+     88
+     89	0150  B8 4C00				     mov     ax, 4c00h
+     90	0153  CD 21				     int     21h
+     91
+     92	0155			     .data
+     93	0000  48 65 6C 6C 6F 20	41+  msg     db	'Hello ASM world!$'
+     94	      53 4D 20 77 6F 72	6C+
+     95	      64 21 24
+     96
+     97				     end start
+Turbo Assembler	 Version 4.1	    02/20/19 17:53:49	    Page 3
+Symbol Table
+
+
+
+
+Symbol Name			  Type	 Value
+
+??DATE				  Text	 "02/20/19"
+??FILENAME			  Text	 "letter  "
+??TIME				  Text	 "17:53:49"
+??VERSION			  Number 040A
+@32BIT				  Text	 0
+@CODE				  Text	 DGROUP
+@CODESIZE			  Text	 0
+@CPU				  Text	 0101H
+@CURSEG				  Text	 _DATA
+@DATA				  Text	 DGROUP
+@DATASIZE			  Text	 0
+@FILENAME			  Text	 LETTER
+@INTERFACE			  Text	 000H
+@MODEL				  Text	 1
+@STACK				  Text	 DGROUP
+@WORDSIZE			  Text	 2
+COLOR				  Number 004E
+LOOP_BODY			  Near	 DGROUP:011F
+LOOP_LINE			  Near	 DGROUP:0127
+LOWER_BORDER			  Near	 DGROUP:013D
+MSG				  Byte	 DGROUP:0000
+MSG_LOOP			  Near	 DGROUP:014A
+START				  Near	 DGROUP:0100
+UPPER_BORDER			  Near	 DGROUP:0111
+VIDEOMEM			  Number B800
+WIDTH				  Number 0018
+X				  Number 000A
+Y				  Number 0007
+
+Groups & Segments		  Bit Size Align  Combine Class
+
+DGROUP				  Group
+  _DATA				  16  0011 Word	  Public  DATA
+  _TEXT				  16  0155 Word	  Public  CODE
+Turbo Assembler	 Version 4.1	    02/20/19 17:53:49	    Page 4
+Error Summary
+
+
+
+*Warning* letter.asm(12) Reserved word used as symbol: WIDTH
+

@@ -1,0 +1,250 @@
+Turbo Assembler	 Version 4.1	    03/01/19 23:54:53	    Page 1
+test.asm
+
+
+
+      1	0000			     .model tiny
+      2	0000			     .code
+      3				     org 100h
+      4
+      5	0100			     start:
+      6	0100  E8 0052			     call    draw_border
+      7
+      8	0103  BE 0000r			     mov     si, offset	msg
+      9	0106  E8 0090			     call    write_msg
+     10
+     11	0109  B8 00AB			     mov     ax, 0abh
+     12	010C  50			     push    ax
+     13	010D  E8 0008			     call    write_ax
+     14	0110  83 C4 02			     add     sp, 2
+     15
+     16	0113  B8 4C00			     mov     ax, 4c00h
+     17	0116  CD 21			     int     21h
+     18
+     19				     include libaxto.asm
+1    20				     ;	 write al in videomemory in hex
+1    21
+1    22	0118			     .code
+1    23
+1    24	      =004E		     color   = 4eh
+1    25
+1    26
+1    27	0118			     write_ax	     proc
+1    28	0118  55			     push    bp
+1    29	0119  8B EC			     mov     bp, sp
+1    30
+1    31	011B  B8 B800			     mov     ax, 0b800h
+1    32	011E  8E C0			     mov es, ax
+1    33	0120  BF 0340			     mov di, 80*5*2 + 16*2
+1    34	0123  FD			     std	 ; di decreases
+1    35
+1    36	0124  8B 46 04			     mov     ax, [bp + 4]
+1    37	0127  B2 10			     mov dl, 16d  ; divide by 10d
+1    38	0129			     continue:
+1    39	0129  F6 F2				     div dl
+1    40	012B  8A F0			     mov     dh, al  ; remeber quotient
+1    41
+1    42	012D  80 FC 0A			     cmp ah, 10
+1    43	0130  7C 17			     jl	numeral
+1    44	0132  EB 1A 90			     jmp letter
+1    45
+1    46	0135			     write:
+1    47	0135  32 C4				     xor al, ah
+1    48	0137  32 E0				     xor ah, al
+1    49	0139  32 C4				     xor al, ah	     ; swop al,	ah
+1    50
+1    51	013B  B4 4E				     mov ah, color ;
+1    52
+1    53	013D  AB				     stosw		     ; mov es:[di], ax / di = di - 2
+1    54	013E  8A C6				     mov     al, dh	     ; write quotient
+1    55	0140  32 E4				     xor     ah, ah	     ; ah = 0
+1    56
+1    57	0142  3C 00				     cmp     al, 0
+Turbo Assembler	 Version 4.1	    03/01/19 23:54:53	    Page 2
+test.asm
+
+
+
+1    58	0144  75 E3				     jne continue
+1    59	0146  EB 0B 90			     jmp done
+1    60
+1    61	0149			     numeral:
+1    62	0149  80 C4 30			     add ah, 48d
+1    63	014C  EB E7			     jmp write
+1    64	014E			     letter:
+1    65	014E  80 C4 37			     add ah, 'A' - 10d
+1    66	0151  EB E2			     jmp write
+1    67
+1    68	0153			     done:
+1    69	0153  5D			     pop bp
+1    70	0154  C3			     ret
+1    71	0155				     endp
+1    72
+     73				     include border.asm
+1    74				     ;	     draw border with text
+1    75
+1    76	      =000A		     X		      =	10
+1    77	      =0007		     Y		      =	7
+1    78	      =B800		     videomem =	0b800h
+1    79	      =004E		     color    =	4Eh
+1    80	      =0018		     width    =	18h
+*Warning* border.asm(7)	Reserved word used as symbol: WIDTH
+1    81
+1    82	0155			     .code
+1    83				     ;------------------------------
+1    84				     ;Draw border around area
+1    85				     ;Destr: ax, bx, cx, dx, di, si
+1    86				     ;------------------------------
+1    87	0155			     draw_border     proc
+1    88	0155  B8 B800				     mov     ax, videomem
+1    89	0158  8E C0				     mov     es, ax	     ; es -> videomem
+1    90
+1    91	015A  BF 0474				     mov     di, (X + Y	* 80) *	2    ; coordinates
+1    92
+1    93				     ;_______LU_CORNER____________________________
+1    94	015D  B8 4EC9				     mov     ax, 4EC9h
+1    95	0160  AB				     stosw
+1    96
+1    97				     ;______DRAW_UPPER_BORDER_____________________
+1    98	0161  B9 0018				     mov     cx, width
+1    99	0164  B0 CD				     mov     al, 0CDh
+1   100	0166			     upper_border:
+1   101	0166  AB				     stosw		     ;/	mov es:[di], ax	/ di = di + 2
+1   102	0167  E2 FD				     loop    upper_border
+1   103				     ;______RU_CORNER_____________________________
+1   104	0169  B0 BB				     mov     al, 0bbh
+1   105	016B  AB				     stosw
+1   106
+1   107				     ;______DRAW_BODY_____________________________
+1   108	016C  BF 0514				     mov     di, (X + (Y+1) * 80) * 2	 ; next	line
+1   109	016F  33 F6				     xor     si, si					     ; si = 0
+1   110	0171  BB 0003				     mov     bx, 3					     ; while (si < bi)
+1   111	0174			     loop_body:
+1   112	0174  B0 BA				     mov     al, 0Bah
+1   113	0176  AB				     stosw
+Turbo Assembler	 Version 4.1	    03/01/19 23:54:53	    Page 3
+test.asm
+
+
+
+1   114
+1   115						     ;______DRAW__LINE__________________________
+1   116	0177  B9 0018				     mov     cx, width
+1   117	017A  B0 00				     mov     al, 0h
+1   118	017C			     loop_line:
+1   119	017C  AB				     stosw
+1   120	017D  E2 FD				     loop    loop_line
+1   121						     ;____________________________________________
+1   122
+1   123	017F  B0 BA				     mov     al, 0Bah
+1   124	0181  AB				     stosw
+1   125
+1   126	0182  83 C7 6C				     add     di,     (80 - width - 2)*2
+1   127	0185  46				     inc     si
+1   128	0186  3B F3				     cmp     si, bx
+1   129	0188  75 EA				     jne     loop_body
+1   130				     ;________________________________________________
+1   131
+1   132				     ;_______LOWER__BODER________
+1   133	018A  B0 C8				     mov     al, 0c8h
+1   134	018C  AB				     stosw
+1   135				     ;______DRAW_LOWER_BORDER_____________________
+1   136	018D  B9 0018				     mov     cx, width
+1   137	0190  B0 CD				     mov     al, 0cdh
+1   138	0192			     lower_border:
+1   139	0192  AB				     stosw
+1   140	0193  E2 FD				     loop    lower_border
+1   141
+1   142	0195  B0 BC				     mov     al, 0bch
+1   143	0197  AB				     stosw
+1   144
+1   145	0198  C3				     ret
+1   146	0199					     endp
+1   147				     ;_____WRITE_MSG__________________________
+1   148				     ;draw message in border
+1   149				     ;Entry: si	- addres of message
+1   150				     ;Destr: ax, di, si
+1   151				     ;-----------------------------------------
+1   152	0199			     write_msg	     proc
+1   153	0199  BF 05BE				     mov     di, (X + 5	+ (Y+2)	* 80) *	2    ;line for the message
+1   154	019C  BE 0000r				     mov     si	,offset	msg
+1   155
+1   156	019F  AC				     lodsb
+1   157	01A0			     msg_loop:
+1   158	01A0  AB				     stosw
+1   159	01A1  AC				     lodsb
+1   160	01A2  3C 24				     cmp     al, 24h	     ; until '$'
+1   161	01A4  75 FA				     jne     msg_loop
+1   162
+1   163	01A6  C3				     ret
+1   164	01A7					     endp
+1   165				     ;______________________________________
+1   166
+1   167
+    168	01A7			     .data
+    169	0000  48 65 79 20 64 75	64+  msg     db	     'Hey dude!$'
+    170	      65 21 24
+Turbo Assembler	 Version 4.1	    03/01/19 23:54:53	    Page 4
+test.asm
+
+
+
+    171
+    172				     end start
+Turbo Assembler	 Version 4.1	    03/01/19 23:54:53	    Page 5
+Symbol Table
+
+
+
+
+Symbol Name			  Type	 Value
+
+??DATE				  Text	 "03/01/19"
+??FILENAME			  Text	 "test	  "
+??TIME				  Text	 "23:54:53"
+??VERSION			  Number 040A
+@32BIT				  Text	 0
+@CODE				  Text	 DGROUP
+@CODESIZE			  Text	 0
+@CPU				  Text	 0101H
+@CURSEG				  Text	 _DATA
+@DATA				  Text	 DGROUP
+@DATASIZE			  Text	 0
+@FILENAME			  Text	 TEST
+@INTERFACE			  Text	 000H
+@MODEL				  Text	 1
+@STACK				  Text	 DGROUP
+@WORDSIZE			  Text	 2
+COLOR				  Number 004E
+CONTINUE			  Near	 DGROUP:0129
+DONE				  Near	 DGROUP:0153
+DRAW_BORDER			  Near	 DGROUP:0155
+LETTER				  Near	 DGROUP:014E
+LOOP_BODY			  Near	 DGROUP:0174
+LOOP_LINE			  Near	 DGROUP:017C
+LOWER_BORDER			  Near	 DGROUP:0192
+MSG				  Byte	 DGROUP:0000
+MSG_LOOP			  Near	 DGROUP:01A0
+NUMERAL				  Near	 DGROUP:0149
+START				  Near	 DGROUP:0100
+UPPER_BORDER			  Near	 DGROUP:0166
+VIDEOMEM			  Number B800
+WIDTH				  Number 0018
+WRITE				  Near	 DGROUP:0135
+WRITE_AX			  Near	 DGROUP:0118
+WRITE_MSG			  Near	 DGROUP:0199
+X				  Number 000A
+Y				  Number 0007
+
+Groups & Segments		  Bit Size Align  Combine Class
+
+DGROUP				  Group
+  _DATA				  16  000A Word	  Public  DATA
+  _TEXT				  16  01A7 Word	  Public  CODE
+Turbo Assembler	 Version 4.1	    03/01/19 23:54:53	    Page 6
+Error Summary
+
+
+
+*Warning* border.asm(7)	Reserved word used as symbol: WIDTH
+

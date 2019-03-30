@@ -1,0 +1,79 @@
+Turbo Assembler	 Version 4.1	    03/02/19 19:29:59	    Page 1
+fromax~1.asm
+
+
+
+      1				     ;	 write al in videomemory in binary
+      2
+      3	0000			     .model tiny
+      4	0000			     .code
+      5
+      6	      =004E		     color   = 4eh
+      7				     org 100h
+      8
+      9	      =0001		     one = 00000001b
+     10	0100			     start:
+     11	0100  B8 B800			     mov ax, 0b800h
+     12	0103  8E C0			     mov es, ax
+     13	0105  BF 0340			     mov di, 80*5*2 + 16*2
+     14
+     15	0108  B8 0055				     mov     ax, 85d
+     16	010B  B9 0008				     mov cx, 8
+     17
+     18	010E			     continue:
+     19	010E  8B D8				     mov bx, ax
+     20	0110  83 E3 01				     and bx, one
+     21	0113  83 FB 01				     cmp bx, 1h
+     22	0116  74 08				     je	loop_one
+     23
+     24	0118  26: C7 05	4E30			     mov word ptr es:[di], 4e30h
+     25	011D  EB 06 90				     jmp toloop
+     26	0120			     loop_one:
+     27	0120  26: C7 05	4E31			     mov word ptr es:[di], 4e31h
+     28
+     29	0125			     toloop:
+     30	0125  83 EF 02				     sub di, 2
+     31	0128  D1 C8				     ror ax , 1
+     32	012A  E2 E2				     loop continue
+     33
+     34	012C  B8 4C00				     mov     ax, 4c00h
+     35	012F  CD 21				     int 21h
+     36
+     37				     end start
+Turbo Assembler	 Version 4.1	    03/02/19 19:29:59	    Page 2
+Symbol Table
+
+
+
+
+Symbol Name			  Type	 Value
+
+??DATE				  Text	 "03/02/19"
+??FILENAME			  Text	 "fromax~1"
+??TIME				  Text	 "19:29:58"
+??VERSION			  Number 040A
+@32BIT				  Text	 0
+@CODE				  Text	 DGROUP
+@CODESIZE			  Text	 0
+@CPU				  Text	 0101H
+@CURSEG				  Text	 _TEXT
+@DATA				  Text	 DGROUP
+@DATASIZE			  Text	 0
+@FILENAME			  Text	 FROMAX~1
+@INTERFACE			  Text	 000H
+@MODEL				  Text	 1
+@STACK				  Text	 DGROUP
+@WORDSIZE			  Text	 2
+COLOR				  Number 004E
+CONTINUE			  Near	 DGROUP:010E
+LOOP_ONE			  Near	 DGROUP:0120
+ONE				  Number 0001
+START				  Near	 DGROUP:0100
+TOLOOP				  Near	 DGROUP:0125
+
+Groups & Segments		  Bit Size Align  Combine Class
+
+DGROUP				  Group
+  _DATA				  16  0000 Word	  Public  DATA
+  _TEXT				  16  0131 Word	  Public  CODE
+

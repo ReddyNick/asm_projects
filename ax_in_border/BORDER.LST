@@ -1,0 +1,155 @@
+Turbo Assembler	 Version 4.1	    03/01/19 24:03:49	    Page 1
+border.asm
+
+
+
+      1				     ;	     draw border with text
+      2	0000			     .model tiny
+      3	      =000A		     X		      =	10
+      4	      =0007		     Y		      =	7
+      5	      =B800		     videomem =	0b800h
+      6	      =004E		     color    =	4Eh
+      7	      =0018		     width    =	18h
+*Warning* border.asm(7)	Reserved word used as symbol: WIDTH
+      8
+      9	0000			     .code
+     10				     ;------------------------------
+     11				     ;Draw border around area
+     12				     ;Destr: ax, bx, cx, dx, di, si
+     13				     ;------------------------------
+     14				     public draw_border
+     15	0000			     draw_border     proc
+     16	0000  B8 B800				     mov     ax, videomem
+     17	0003  8E C0				     mov     es, ax	     ; es -> videomem
+     18
+     19	0005  BF 0474				     mov     di, (X + Y	* 80) *	2    ; coordinates
+     20
+     21				     ;_______LU_CORNER____________________________
+     22	0008  B8 4EC9				     mov     ax, 4EC9h
+     23	000B  AB				     stosw
+     24
+     25				     ;______DRAW_UPPER_BORDER_____________________
+     26	000C  B9 0018				     mov     cx, width
+     27	000F  B0 CD				     mov     al, 0CDh
+     28	0011			     upper_border:
+     29	0011  AB				     stosw		     ;/	mov es:[di], ax	/ di = di + 2
+     30	0012  E2 FD				     loop    upper_border
+     31				     ;______RU_CORNER_____________________________
+     32	0014  B0 BB				     mov     al, 0bbh
+     33	0016  AB				     stosw
+     34
+     35				     ;______DRAW_BODY_____________________________
+     36	0017  BF 0514				     mov     di, (X + (Y+1) * 80) * 2	 ; next	line
+     37	001A  33 F6				     xor     si, si					     ; si = 0
+     38	001C  BB 0003				     mov     bx, 3					     ; while (si < bi)
+     39	001F			     loop_body:
+     40	001F  B0 BA				     mov     al, 0Bah
+     41	0021  AB				     stosw
+     42
+     43						     ;______DRAW__LINE__________________________
+     44	0022  B9 0018				     mov     cx, width
+     45	0025  B0 00				     mov     al, 0h
+     46	0027			     loop_line:
+     47	0027  AB				     stosw
+     48	0028  E2 FD				     loop    loop_line
+     49						     ;____________________________________________
+     50
+     51	002A  B0 BA				     mov     al, 0Bah
+     52	002C  AB				     stosw
+     53
+     54	002D  83 C7 6C				     add     di,     (80 - width - 2)*2
+     55	0030  46				     inc     si
+     56	0031  3B F3				     cmp     si, bx
+Turbo Assembler	 Version 4.1	    03/01/19 24:03:49	    Page 2
+border.asm
+
+
+
+     57	0033  75 EA				     jne     loop_body
+     58				     ;________________________________________________
+     59
+     60				     ;_______LOWER__BODER________
+     61	0035  B0 C8				     mov     al, 0c8h
+     62	0037  AB				     stosw
+     63				     ;______DRAW_LOWER_BORDER_____________________
+     64	0038  B9 0018				     mov     cx, width
+     65	003B  B0 CD				     mov     al, 0cdh
+     66	003D			     lower_border:
+     67	003D  AB				     stosw
+     68	003E  E2 FD				     loop    lower_border
+     69
+     70	0040  B0 BC				     mov     al, 0bch
+     71	0042  AB				     stosw
+     72
+     73	0043  C3				     ret
+     74	0044					     endp
+     75				     ;_____WRITE_MSG__________________________
+     76				     ;draw message in border
+     77				     ;Entry: si	- addres of message
+     78				     ;Destr: ax, di, si
+     79				     ;-----------------------------------------
+     80				     public write_msg
+     81	0044			     write_msg	     proc
+     82	0044  BF 05BE				     mov     di, (X + 5	+ (Y+2)	* 80) *	2    ;line for the message
+     83
+     84
+     85	0047  AC				     lodsb
+     86	0048			     msg_loop:
+     87	0048  AB				     stosw
+     88	0049  AC				     lodsb
+     89	004A  3C 24				     cmp     al, 24h	     ; until '$'
+     90	004C  75 FA				     jne     msg_loop
+     91
+     92	004E  C3				     ret
+     93	004F					     endp
+     94				     ;______________________________________
+     95					     end
+Turbo Assembler	 Version 4.1	    03/01/19 24:03:49	    Page 3
+Symbol Table
+
+
+
+
+Symbol Name			  Type	 Value
+
+??DATE				  Text	 "03/01/19"
+??FILENAME			  Text	 "border  "
+??TIME				  Text	 "24:03:49"
+??VERSION			  Number 040A
+@32BIT				  Text	 0
+@CODE				  Text	 DGROUP
+@CODESIZE			  Text	 0
+@CPU				  Text	 0101H
+@CURSEG				  Text	 _TEXT
+@DATA				  Text	 DGROUP
+@DATASIZE			  Text	 0
+@FILENAME			  Text	 BORDER
+@INTERFACE			  Text	 000H
+@MODEL				  Text	 1
+@STACK				  Text	 DGROUP
+@WORDSIZE			  Text	 2
+COLOR				  Number 004E
+DRAW_BORDER			  Near	 DGROUP:0000
+LOOP_BODY			  Near	 DGROUP:001F
+LOOP_LINE			  Near	 DGROUP:0027
+LOWER_BORDER			  Near	 DGROUP:003D
+MSG_LOOP			  Near	 DGROUP:0048
+UPPER_BORDER			  Near	 DGROUP:0011
+VIDEOMEM			  Number B800
+WIDTH				  Number 0018
+WRITE_MSG			  Near	 DGROUP:0044
+X				  Number 000A
+Y				  Number 0007
+
+Groups & Segments		  Bit Size Align  Combine Class
+
+DGROUP				  Group
+  _DATA				  16  0000 Word	  Public  DATA
+  _TEXT				  16  004F Word	  Public  CODE
+Turbo Assembler	 Version 4.1	    03/01/19 24:03:49	    Page 4
+Error Summary
+
+
+
+*Warning* border.asm(7)	Reserved word used as symbol: WIDTH
+

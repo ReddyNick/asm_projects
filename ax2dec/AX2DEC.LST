@@ -1,0 +1,77 @@
+Turbo Assembler	 Version 4.1	    02/20/19 19:52:25	    Page 1
+ax2dec.asm
+
+
+
+      1				     ;	 write al in videomemory in dec
+      2
+      3	0000			     .model tiny
+      4	0000			     .code
+      5
+      6	      =004E		     color   = 4eh
+      7				     org 100h
+      8
+      9	0100			     start:
+     10	0100  B8 B800			     mov ax, 0b800h
+     11	0103  8E C0			     mov es, ax
+     12	0105  BF 0340			     mov di, 80*5*2 + 16*2
+     13	0108  FD			     std	 ; di decreases
+     14
+     15	0109  B8 0055				     mov     ax, 85d
+     16	010C  B2 0A			     mov dl, 10d  ; divide by 10d
+     17	010E			     continue:
+     18	010E  F6 F2				     div dl
+     19	0110  8A F0			     mov     dh, al  ; remeber quotient
+     20	0112  80 C4 30				     add ah, 48d
+     21
+     22	0115  32 C4				     xor al, ah
+     23	0117  32 E0				     xor ah, al
+     24	0119  32 C4				     xor al, ah	     ; swop al,	ah
+     25
+     26	011B  B4 4E				     mov ah, color ;
+     27
+     28	011D  AB				     stosw		     ; mov es:[di], ax / di = di - 2
+     29	011E  8A C6				     mov     al, dh	     ; write quotient
+     30	0120  32 E4				     xor     ah, ah	     ; ah = 0
+     31
+     32	0122  3C 00				     cmp     al, 0
+     33	0124  75 E8				     jne continue
+     34
+     35	0126  B8 4C00				     mov     ax, 4c00h
+     36	0129  CD 21				     int 21h
+     37
+     38				     end start
+Turbo Assembler	 Version 4.1	    02/20/19 19:52:25	    Page 2
+Symbol Table
+
+
+
+
+Symbol Name			  Type	 Value
+
+??DATE				  Text	 "02/20/19"
+??FILENAME			  Text	 "ax2dec  "
+??TIME				  Text	 "19:52:25"
+??VERSION			  Number 040A
+@32BIT				  Text	 0
+@CODE				  Text	 DGROUP
+@CODESIZE			  Text	 0
+@CPU				  Text	 0101H
+@CURSEG				  Text	 _TEXT
+@DATA				  Text	 DGROUP
+@DATASIZE			  Text	 0
+@FILENAME			  Text	 AX2DEC
+@INTERFACE			  Text	 000H
+@MODEL				  Text	 1
+@STACK				  Text	 DGROUP
+@WORDSIZE			  Text	 2
+COLOR				  Number 004E
+CONTINUE			  Near	 DGROUP:010E
+START				  Near	 DGROUP:0100
+
+Groups & Segments		  Bit Size Align  Combine Class
+
+DGROUP				  Group
+  _DATA				  16  0000 Word	  Public  DATA
+  _TEXT				  16  012B Word	  Public  CODE
+
