@@ -1,0 +1,108 @@
+     1                                  extern printf
+     2                                  
+     3                                  
+     4                                  
+     5                                  section .text
+     6                                  global _start
+     7                                  
+     8                                  _start:
+     9 00000000 B801000000              				mov 	rax, 1			; sys_write
+    10 00000005 BF01000000              				mov 	rdi, 1			; stdout
+    11 0000000A 48BE-                   				mov 	rsi, invite
+    12 0000000C [0800000000000000] 
+    13 00000014 BA1C000000              				mov     rdx, invitelen
+    14 00000019 0F05                    				syscall
+    15                                  
+    16 0000001B 48BE-                   				mov 	rsi, buffer
+    17 0000001D [7A00000000000000] 
+    18                                  
+    19 00000025 4831C0                  				xor 	rax, rax		; sys_read
+    20 00000028 4831FF                  				xor 	rdi, rdi 		; stdin
+    21 0000002B BA64000000              				mov 	rdx, 100		
+    22 00000030 0F05                    				syscall
+    23                                  
+    24 00000032 48BE-                   				mov 	rsi, buffer
+    25 00000034 [7A00000000000000] 
+    26 0000003C 48BF-                   				mov 	rdi, pswrd
+    27 0000003E [0000000000000000] 
+    28 00000046 E84D000000              				call 	check_pswrd	
+    29                                  
+    30 0000004B 8A0425[83000000]        				mov		al, [str1]
+    31 00000052 3C59                    				cmp 	al, 'Y'
+    32 00000054 751D                    				jne		access_denied
+    33                                  				
+    34 00000056 B801000000              				mov 	rax, 1			; sys_write
+    35 0000005B BF01000000              				mov 	rdi, 1			; stdout
+    36 00000060 48BE-                   				mov 	rsi, right_pswrd
+    37 00000062 [2400000000000000] 
+    38 0000006A BA37000000              				mov     rdx, right_pswrdlen
+    39 0000006F 0F05                    				syscall
+    40                                  
+    41 00000071 EB1B                    				jmp endprog
+    42                                  
+    43                                  access_denied:				
+    44 00000073 B801000000              				mov 	rax, 1			; sys_write
+    45 00000078 BF01000000              				mov 	rdi, 1			; stdout
+    46 0000007D 48BE-                   				mov 	rsi, wrong_pswrd
+    47 0000007F [5B00000000000000] 
+    48 00000087 BA1F000000              				mov     rdx, wrong_pswrdlen
+    49 0000008C 0F05                    				syscall
+    50                                  				
+    51                                  endprog:
+    52 0000008E B83C000000              				mov 	rax, 0x3C		; exit64 (rdi)
+    53 00000093 4831FF                              	xor 	rdi, rdi
+    54 00000096 0F05                                	syscall
+    55                                  
+    56                                  
+    57                                  section .data
+    58                                  
+    59 00000000 89A2AFAAB6AAA7BB        pswrd:			db		0x89, 0xa2, 0xaf, 0xaa, 0xb6, 0xaa, 0xa7, 0xbb
+    60                                  pswrdlen		equ		$ - pswrd
+    61                                  
+    62 00000008 D092D0B2D0B5D0B4D0-     invite:					db		"Введите пароль", 0xa
+    63 00000011 B8D182D0B520D0BFD0-
+    64 0000001A B0D180D0BED0BBD18C-
+    65 00000023 0A                 
+    66                                  invitelen				equ		$ - invite
+    67                                  
+    68 00000024 D094D0BED181D182D1-     right_pswrd:			db 		"Доступ получен!", 0xa , "Здравствуйте!", 0xa
+    69 0000002D 83D0BF20D0BFD0BED0-
+    70 00000036 BBD183D187D0B5D0BD-
+    71 0000003F 210AD097D0B4D180D0-
+    72 00000048 B0D0B2D181D182D0B2-
+    73 00000051 D183D0B9D182D0B521-
+    74 0000005A 0A                 
+    75                                  right_pswrdlen			equ		$ - right_pswrd
+    76                                  
+    77 0000005B D09DD0B5D0B2D0B5D1-     wrong_pswrd:			db		"Неверный пароль!", 0xa
+    78 00000064 80D0BDD18BD0B920D0-
+    79 0000006D BFD0B0D180D0BED0BB-
+    80 00000076 D18C210A           
+    81                                  wrong_pswrdlen			equ		$ - wrong_pswrd
+    82                                  
+    83 0000007A 00<rept>                buffer:			times pswrdlen + 1 db 0
+    84 00000083 0000                    str1:			db 0, 0
+    85                                  
+    86                                  section	.text
+    87                                  ;---------------CHECK_PASSWORD---------------------------
+    88                                  check_pswrd:
+    89 00000098 B040                    				mov 	al, 0x40
+    90                                  		loop_:
+    91 0000009A 0006                    				add 	byte[rsi], al
+    92 0000009C 48FFC6                  				inc    	rsi
+    93 0000009F FEC0                    				inc   	al
+    94                                  
+    95 000000A1 3C48                    				cmp 	al, 0x48
+    96 000000A3 75F5                    				jne 	loop_
+    97                                  
+    98                                  
+    99 000000A5 48BE-                   				mov 	rsi, buffer
+   100 000000A7 [7A00000000000000] 
+   101 000000AF B908000000              				mov		rcx, pswrdlen
+   102 000000B4 F3A6                    				repe 	cmpsb
+   103                                  
+   104 000000B6 7508                    				jne		incorrect
+   105 000000B8 C60425[83000000]59      				mov		byte [str1], 'Y'
+   106                                  incorrect:
+   107 000000C0 C3                      				ret
+   108                                  
